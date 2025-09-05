@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Plantilla para Obligatorio de C++
 
 Este repositorio es una plantilla para comenzar los trabajos obligatorios de la materia de Estructura de Datos y Algoritmos 2 en C++.
@@ -30,3 +31,6 @@ Para ejecutar tu programa:
 ```bash
 ./nombre_del_ejecutable
 ```
+=======
+# ObligatorioAlgoritmos
+>>>>>>> 86cee364b8d06c42ae8226c3ec6ab438657ea826
