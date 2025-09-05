@@ -18,7 +18,7 @@ struct Jugador{
     Jugador()  : raiz(NULL), top1(NULL), cantElem(0){}
 };
 
-
+//Hacer nodoPuntaje nodoId
 struct NodoAVL {
     string nombre;
     int puntaje;
