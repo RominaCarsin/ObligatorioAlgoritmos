@@ -5,20 +5,9 @@
 
 using namespace std;
 
-int main()
-{
-    return 0;
-}
-
-
-struct Jugador{
-    NodoAVL* raiz;
-    int cantElem;
-    NodoAVL*top1;
-    Jugador()  : raiz(NULL), top1(NULL), cantElem(0){}
-};
 
 //Hacer nodoPuntaje nodoId
+// se puede reducir la cantidad retirando countsub de este y haciendo otra solo para el de coutnsub 
 struct NodoAVL {
     string nombre;
     int puntaje;
@@ -26,36 +15,53 @@ struct NodoAVL {
     int fVal;
     NodoAVL *izq; 
     NodoAVL *der;
+    int countSub;
     
-    NodoAVL(string nom, int p, int id):nombre(nom), puntaje (p), id(id), fVal(0), izq(NULL), der(NULL){}
+    NodoAVL(string nom, int p, int id):nombre(nom), puntaje (p), id(id), fVal(0), izq(NULL), der(NULL), countSub(1){}
 };
 
-void ADD (Jugador *& j, string nombre, int puntos, int id){
-    bool created = ADDPointTree(j->raiz, nombre, puntos,id, false);
-    NodoAVL* ret = ADDId(j->raiz,  nombre,  puntos, id, false);
-    
-    if (created){
-        j->cantElem++;
+// representacion avl
+struct Jugador{
+    NodoAVL* pointsTree;
+    NodoAVL* idTree;
+    int cantElem;
+    NodoAVL*top1;
+    Jugador()  : pointsTree(NULL), idTree(NULL),top1(NULL), cantElem(0){}
+};
+
+void updateCount(NodoAVL* node) {
+    if (node) {
+        node->countSub = 1;
+        if (node->izq) node->countSub += node->izq->countSub;
+        if (node->der) node->countSub += node->der->countSub;
     }
-    if(j->top1 == NULL){
-        j->top1 = ret;
-    }else if(j->top1->puntaje < ret->puntaje){
-        j->top1 = ret;
-    }
-    
 }
 
-bool ADDPointTree (NodoAVL *&a, string nombre, int puntos, int id, bool varioAltura){
-    bool insertado;
+void rotacionDerecha(NodoAVL *&a) {
+    NodoAVL *b = a->izq;
+    a->izq = b->der;
+    b->der = a;
+    a = b;
+}
+
+void rotacionIzquierda(NodoAVL *&a) {
+    NodoAVL *b = a->der;
+    a->der = b->izq;
+    b->izq = a;
+    a = b;
+}
+
+bool ADDId (NodoAVL *&a, string nombre, int puntos, int id, bool& varioAltura){
+    bool insertado= false;
     if (a == NULL)
     {
         a = new NodoAVL(nombre, puntos, id);
         varioAltura = true;
         return true;
     }
-    if (puntos < a->puntaje)
+    if (id < a->id)
     {
-        insertado = ADDPointTree (a->izq, nombre, puntos, id, varioAltura);
+        insertado = ADDId (a->izq, nombre, puntos, id, varioAltura);
         if (varioAltura)
         {
             switch (a->fVal)
@@ -64,37 +70,48 @@ bool ADDPointTree (NodoAVL *&a, string nombre, int puntos, int id, bool varioAlt
                     a->fVal = 0;
                     varioAltura = false;
                     break;
+
                 case 0:
                     a->fVal = -1;
                     break;
                 case -1:
                     NodoAVL *p1 = a->izq;
                     if(p1->fVal == -1){
-                        a->izq = p1->der;
-                        p1->der = a;
+                        rotacionDerecha(a);
                         a->fVal = 0;
-                        a = p1;
+                        a->der->fVal = 0;
                     } else {
                         NodoAVL *p2 = p1->der;
-                        p1->der = p2->izq;
-                        p2->izq = p1;
-                        a->izq = p2->der;
-                        p2->der = a;
-                        a->fVal = p2->fVal == -1 ? 1 : 0;
-                        p1->fVal = p2->fVal == 1 ? -1 : 0;
-                        a = p2;
+                        rotacionIzquierda(a->izq);
+                        rotacionDerecha(a);
+                        if (p2->fVal == -1){
+                            a->der->fVal = 1;
+                            a->izq->fVal = 0;
+                        }
+                        else if (p2->fVal == 1){
+                            a->izq->fVal = -1;
+                            a->der->fVal = 0;
+                        }
+                        else{
+                            a->izq->fVal = 0;
+                            a->der->fVal = 0; }
+                            a->fVal = 0;
                     }
                     a->fVal = 0;
                     varioAltura = false;
                     break;
             }
+            if (a->izq) updateCount(a->izq);
+            if (a->der) updateCount(a->der);
+            updateCount(a);
             varioAltura = false;
         }
+        updateCount(a);
         return insertado;
     }
-    else if (puntos > a->puntaje)
+    else if (id > a->id)
     {
-        insertado = ADDPointTree(a->der, nombre, puntos, id, varioAltura);
+        insertado = ADDId(a->der, nombre, puntos, id, varioAltura);
         if (varioAltura)
         {
             switch (a->fVal)
@@ -109,41 +126,51 @@ bool ADDPointTree (NodoAVL *&a, string nombre, int puntos, int id, bool varioAlt
                 case 1:
                     NodoAVL *p1 = a->der;
                     if(p1->fVal == 1){
-                        a->der = p1->izq;
-                        p1->izq = a;
+                        rotacionIzquierda(a);
                         a->fVal = 0;
-                        a = p1;
+                        a->izq->fVal = 0;
                     } else {
                         NodoAVL *p2 = p1->izq;
-                        p1->izq = p2->der;
-                        p2->der = p1;
-                        a->der = p2->izq;
-                        p2->izq = a;
-                        a->fVal = p2->fVal == 1 ? -1 : 0;
-                        p1->fVal = p2->fVal == -1 ? 1 : 0;
-                        a = p2;
-                        return insertado;
+                        rotacionDerecha(a->der);
+                        rotacionIzquierda(a);
+                        if (p2->fVal == 1){
+                            a->izq->fVal = -1;
+                            a->der->fVal = 0;
+                        }
+                        else if (p2->fVal == -1){
+                            a->der->fVal = 1;
+                            a->izq->fVal = 0;
+                        }
+                        else{
+                            a->izq->fVal = 0; 
+                            a->der->fVal = 0;
+                        }
+                        a->fVal = 0;
                     }
                     a->fVal = 0;
                     varioAltura = false;
                     break;
             }
+            if (a->izq) updateCount(a->izq);
+            if (a->der) updateCount(a->der);
+            updateCount(a);
             varioAltura = false;
         }
+        updateCount(a);
         return insertado;
-    } else return false;
+    } else { varioAltura = false; return false; }
 }
 
-NodoAVL* ADDId (NodoAVL *&a, string nombre, int puntos, int id, bool varioAltura){
+NodoAVL* ADDPointTree (NodoAVL *&a, string nombre, int puntos, int id, bool& varioAltura){
     if (a == NULL)
     {
         a = new NodoAVL(nombre, puntos, id);
         varioAltura = true;
-        return;
+        return a;
     }
-    if (id < a->id)
+    if (puntos < a->puntaje || (puntos == a->puntaje && id < a->id))
     {
-        ADDId (a->izq, nombre, puntos, id, varioAltura);
+        NodoAVL* ins = ADDPointTree(a->izq, nombre, puntos, id, varioAltura);
         if (varioAltura)
         {
             switch (a->fVal)
@@ -158,31 +185,39 @@ NodoAVL* ADDId (NodoAVL *&a, string nombre, int puntos, int id, bool varioAltura
                 case -1:
                     NodoAVL *p1 = a->izq;
                     if(p1->fVal == -1){
-                        a->izq = p1->der;
-                        p1->der = a;
-                        a->fVal = 0;
-                        a = p1;
+                        rotacionDerecha(a);
+                        a->der->fVal = 0;
                     } else {
                         NodoAVL *p2 = p1->der;
-                        p1->der = p2->izq;
-                        p2->izq = p1;
-                        a->izq = p2->der;
-                        p2->der = a;
-                        a->fVal = p2->fVal == -1 ? 1 : 0;
-                        p1->fVal = p2->fVal == 1 ? -1 : 0;
-                        a = p2;
+                        rotacionIzquierda(a->izq);
+                        rotacionDerecha(a);
+                        if (p2->fVal == -1){
+                            a->der->fVal = 1;
+                            a->izq->fVal = 0;
+                        }
+                        else if (p2->fVal == 1){
+                            a->izq->fVal = -1;
+                            a->der->fVal = 0;
+                        }
+                        else{
+                            a->izq->fVal = 0;
+                            a->der->fVal = 0; }
+                            a->fVal = 0;
                     }
-                    a->fVal = 0;
+                    a->fVal=0;
                     varioAltura = false;
                     break;
             }
             varioAltura = false;
         }
-        return;
+        if (a->izq) updateCount(a->izq);
+        if (a->der) updateCount(a->der);
+        updateCount(a);
+        return ins;
     }
-    else if (id > a->id)
+    else if (puntos > a->puntaje || (puntos == a->puntaje && id > a->id))
     {
-        ADDId(a->der, nombre, id, id, varioAltura);
+        NodoAVL* ins = ADDPointTree(a->der, nombre, puntos, id, varioAltura);
         if (varioAltura)
         {
             switch (a->fVal)
@@ -197,29 +232,54 @@ NodoAVL* ADDId (NodoAVL *&a, string nombre, int puntos, int id, bool varioAltura
                 case 1:
                     NodoAVL *p1 = a->der;
                     if(p1->fVal == 1){
-                        a->der = p1->izq;
-                        p1->izq = a;
-                        a->fVal = 0;
-                        a = p1;
+                        rotacionIzquierda(a);
+                        a->izq->fVal = 0;
+                        a->fVal=0;
                     } else {
                         NodoAVL *p2 = p1->izq;
-                        p1->izq = p2->der;
-                        p2->der = p1;
-                        a->der = p2->izq;
-                        p2->izq = a;
-                        a->fVal = p2->fVal == 1 ? -1 : 0;
-                        p1->fVal = p2->fVal == -1 ? 1 : 0;
-                        a = p2;
-                        return;
+                        rotacionDerecha(a->der);
+                        rotacionIzquierda(a);
+                        if (p2->fVal == -1){
+                            a->der->fVal = 1;
+                            a->izq->fVal = 0;
+                        }
+                        else if (p2->fVal == 1){
+                            a->izq->fVal = -1;
+                            a->der->fVal = 0;
+                        }
+                        else{
+                            a->izq->fVal = 0;
+                            a->der->fVal = 0; }
+                            a->fVal = 0;
                     }
                     a->fVal = 0;
                     varioAltura = false;
                     break;
             }
+            if (a->izq) updateCount(a->izq);
+            if (a->der) updateCount(a->der);
+            updateCount(a);
             varioAltura = false;
         }
-        return;
-    } else return;
+        updateCount(a);
+        return ins;
+    } else { updateCount(a); return a; }
+}
+
+void ADD (Jugador *& j, string nombre, int puntos, int id){
+    bool h1 = false;
+    bool created = ADDId(j->idTree, nombre, puntos,id, h1);
+    NodoAVL* ret= NULL;
+    
+    if (created){
+        j->cantElem++;
+        h1=false;
+        ret = ADDPointTree(j->pointsTree,  nombre,  puntos, id, h1);
+    }
+    if (ret && (!j->top1 || ret->puntaje > j->top1->puntaje || (ret->puntaje == j->top1->puntaje && ret->id < j->top1->id))) {
+        j->top1 = ret;
+    }
+        
 }
 
 void FIND (NodoAVL *&a, int id){
@@ -236,22 +296,54 @@ void FIND (NodoAVL *&a, int id){
     }
 }
 
-int RANK (NodoAVL *&a, int puntaje, int cantidad){
-    if(!a){
-        return cantidad;
+int RANK(NodoAVL* a, int puntaje) {
+    int res = 0;
+    while (a) {
+        if (a->puntaje >= puntaje) {
+            res += 1;
+            if (a->der) res += a->der->countSub;
+            a = a->izq;
+        } else {
+            a = a->der;
+        }
     }
-    if(a->puntaje >= puntaje){
-       cantidad++;
-        RANK(a->der, puntaje, cantidad);
-    }else{
-        RANK(a->izq, puntaje, cantidad);
-    }
+    return res;
 }
-
 NodoAVL* TOP1(Jugador* j){
     return j->top1;
 }
 
 int CANT (Jugador* j){
     return j->cantElem;
+}
+
+void inorder(NodoAVL* j)
+{
+    if(j)
+    {
+
+        
+        inorder(j->izq);
+        cout << "puntaje: " <<j->puntaje << "id: " << j->id << endl;
+        inorder(j->der);
+    }
+}
+
+void main()
+{
+    Jugador* j = new Jugador();
+
+    while (true) {
+        string nombre;
+        int puntos, id;
+
+        if (!(cin >> id)) break;
+        if (!(cin >> nombre)) break;
+        if (!(cin >> puntos)) break;
+
+        ADD(j, nombre, puntos, id);
+    }
+
+    inorder(j->pointsTree);
+    inorder(j->idTree);
 }
