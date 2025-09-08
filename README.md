@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+W<<<<<<< HEAD
 # Plantilla para Obligatorio de C++
 
 Este repositorio es una plantilla para comenzar los trabajos obligatorios de la materia de Estructura de Datos y Algoritmos 2 en C++.

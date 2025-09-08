@@ -317,33 +317,68 @@ int CANT (Jugador* j){
     return j->cantElem;
 }
 
-void inorder(NodoAVL* j)
-{
-    if(j)
-    {
+// void inorder(NodoAVL* j)
+// {
+//     if(j)
+//     {
 
         
-        inorder(j->izq);
-        cout << "puntaje: " <<j->puntaje << "id: " << j->id << endl;
-        inorder(j->der);
-    }
-}
+//         inorder(j->izq);
+//         cout << "puntaje: " <<j->puntaje << "id: " << j->id << endl;
+//         inorder(j->der);
+//     }
+// }
 
-void main()
+//capas y es mejor hacerlo con else if 
+int main()
 {
     Jugador* j = new Jugador();
+    int n;
+    cin >> n;
+    for (int i = 0; i < n; i++) {
+        string op;
+        cin >> op;
+        int opAccion = -1;
+        if (op == "ADD") opAccion = 0;
+        else if (op == "FIND") opAccion = 1;
+        else if (op == "TOP1") opAccion = 2;
+        else if (op == "COUNT") opAccion = 3;
+        else if (op == "RANK") opAccion = 4;
 
-    while (true) {
-        string nombre;
-        int puntos, id;
-
-        if (!(cin >> id)) break;
-        if (!(cin >> nombre)) break;
-        if (!(cin >> puntos)) break;
-
-        ADD(j, nombre, puntos, id);
+        switch (opAccion) {
+            case 0: {
+                int id, puntos;
+                string nombre;
+                cin >> id >> nombre >> puntos;
+                ADD(j, nombre, puntos, id);
+                break;
+            }
+            case 1: {
+                int id;
+                cin >> id;
+                FIND(j->idTree, id);
+                break;
+            }
+            case 2: {
+                NodoAVL* top = TOP1(j);
+                if (top) cout << top->nombre << " " << top->puntaje << endl;
+                break;
+            }
+            case 3: {
+                cout << CANT(j) << endl;
+                break;
+            }
+            case 4: {
+                int puntaje;
+                cin >> puntaje;
+                cout << RANK(j->pointsTree, puntaje) << endl;
+                break;
+            }
+            default:
+                // No hace nada
+                break;
+        }
     }
-
-    inorder(j->pointsTree);
-    inorder(j->idTree);
+    return 0;
+    
 }
