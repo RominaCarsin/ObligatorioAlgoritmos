@@ -27,13 +27,13 @@ int main()
     int capacidad;
     int tamaño;
     double fatorDeCargaMax;
-    Cache(int capacidad) : capacidad(capacidad), tamaño (0), fatorDeCargaMax(0.7){}
+    Cache(int capacidad) : capacidad(capacidad), tamaño(0), fatorDeCargaMax(0.7) {tabla = new NodoHash*[capacidad]();}
  };
 typedef Cache* Hash;
 
 
  double FactorDeCarga(Cache& c){
-    return double(c.tamaño / c.capacidad); //averiguar porque no funciona la ->
+    return double(c.tamaño) / c.capacidad; //averiguar porque no funciona la ->
  }
  
 bool esPrimo(int num){
@@ -72,11 +72,128 @@ int hash2 (string& clave, int capacidad){
     {
         hash = (hash * 31 + c) % moduloMax1;
     }
-    return hash % capacidad;
+    return (hash % (capacidad-1))+1; //revisar nuevamente la cuenta 
     
 }
 
 
-void refactor (Hash& h){
+void refactor(Hash& h) {
+    int nuevaCapacidad = primoSupMinimo(h->capacidad * 2);
+    NodoHash** nuevaTabla = new NodoHash*[nuevaCapacidad]();
+    for (int i = 0; i < h->capacidad; i++) {
+        if (h->tabla[i] && !h->tabla[i]->estaBorrado) {
+            string clave = h->tabla[i]->dominio + "#" + h->tabla[i]->path;
+            int h1 = hash1(clave, nuevaCapacidad);
+            int h2 = hash2(clave, nuevaCapacidad);
+            int j = 0;
+            int idx = (h1 + j * h2) % nuevaCapacidad;
+            while (nuevaTabla[idx] != nullptr) {
+                j++;
+                idx = (h1 + j * h2) % nuevaCapacidad;
+            }
+            nuevaTabla[idx] = h->tabla[i];
+        }
+    }
+    delete[] h->tabla;
+    h->tabla = nuevaTabla;
+    h->capacidad = nuevaCapacidad;
+}
+
+void PUT(Hash& h, string& dom, string& path, string& titulo, int tiempo) {
+    if (FactorDeCarga(*h) > h->fatorDeCargaMax) 
+    {
+        refactor(h);
+    }
+    string clave = dom + "#" + path;
+    int h1 = hash1(clave, h->capacidad);
+    int h2 = hash2(clave, h->capacidad);
+    int idx = h1;
+    int firstBorrado = -1;
+    bool encontre = false;
+    //terminarlo
+}
+
+string GET (Hash h, string dom, string path){
+    string clave = dom +"#"+ path;
+    int h1 = hash1(clave, h->capacidad);
+    int h2 = hash2(clave, h->capacidad);
+    int idx = h1;
+    
+    for (int j = 0; j < h->capacidad; ++j) { //O(1) promedio
+        idx = (h1 + j * h2) % h->capacidad;
+        
+        if (h->tabla[idx] == NULL) 
+        {
+            return "recurso_no_encontrado";
+        }
+        
+        if (!h->tabla[idx]->estaBorrado) 
+        {
+            if (h->tabla[idx]->dominio == dom && h->tabla[idx]->path == path) {
+                return h->tabla[idx]->titulo + " " + to_string(h->tabla[idx]->tiempo); //averiguar si se puede usar to string
+            }
+        }
+    }
+    return "recurso_no_encontrado";
+}
+
+void REMOVE (Hash h, string dom, string path){
+    string clave = dom +"#"+ path;
+    int h1 = hash1(clave, h->capacidad);
+    int h2 = hash2(clave, h->capacidad);
+    int idx = h1;
+    for (int j = 0; j < h->capacidad; ++j) { //O(1) promedio
+        idx = (h1 + j * h2) % h->capacidad;
+        
+        if (h->tabla[idx] == NULL) 
+        {
+            return ;
+        }
+        
+        if (!h->tabla[idx]->estaBorrado) 
+        {
+            if (!h->tabla[idx]->estaBorrado && h->tabla[idx]->dominio == dom && h->tabla[idx]->path == path) {
+                h->tamaño--;
+                h->tabla[idx]->estaBorrado =true;
+                int domHash = 0;
+
+
+
+
+
+
+                // falta terminarlo
+            }
+        }
+    }
+}
+
+void  CONTAINS (Hash h, string dom, string path){
+    string clave = dom +"#"+ path;
+    int h1 = hash1(clave, h->capacidad);
+    int h2 = hash2(clave, h->capacidad);
+    int idx = h1;
+    for (int j = 0; j < h->capacidad; ++j) { //O(1) promedio
+        idx = (h1 + j * h2) % h->capacidad;
+        
+        if (h->tabla[idx] == NULL) 
+        {
+            cout << "false" << endl;
+            return ;
+        }
+        
+        if (!h->tabla[idx]->estaBorrado) 
+        {
+            if (h->tabla[idx]->dominio == dom && h->tabla[idx]->path == path) {
+                cout << "true" << endl;
+                return;
+            }
+        }
+    }
+    cout << "false" << endl;
+    return;
 
 }
+
+
+
