@@ -11,6 +11,9 @@ int main()
     return 0;
 }
 
+
+//template<class T>;
+
  struct NodoHash
  {
     string dominio;
@@ -29,13 +32,20 @@ int main()
     double fatorDeCargaMax;
     Cache(int capacidad) : capacidad(capacidad), tamaño(0), fatorDeCargaMax(0.7) {tabla = new NodoHash*[capacidad]();}
  };
+
+ struct Dominio
+ {
+    NodoHash** tabla;
+
+ };
+
 typedef Cache* Hash;
 
 
- double FactorDeCarga(Cache& c){
-    return double(c.tamaño) / c.capacidad; //averiguar porque no funciona la ->
+ double FactorDeCarga(Cache* c){
+    return double(c->tamaño) / c->capacidad;
  }
- 
+   
 bool esPrimo(int num){
     if(num<=1 || num%2==0 && num!=2) return false;
     if(num==2) return true;
@@ -100,7 +110,7 @@ void refactor(Hash& h) {
 }
 
 void PUT(Hash& h, string& dom, string& path, string& titulo, int tiempo) {
-    if (FactorDeCarga(*h) > h->fatorDeCargaMax) 
+    if (FactorDeCarga(h) > h->fatorDeCargaMax) 
     {
         refactor(h);
     }
@@ -195,5 +205,42 @@ void  CONTAINS (Hash h, string dom, string path){
 
 }
 
+void COUNT_DOMAIN (Hash h, string dom){
+    int cant = 0;
+    for (int i = 0; i < h->capacidad; ++i) {
+        if (h->tabla[i] && !h->tabla[i]->estaBorrado && h->tabla[i]->dominio == dom) {
+            cant++;
+        }
+    }
+    cout << cant << endl;
+}
+
+void LIST_DOMAIN(Hash h, string dom) {
+   
+}
+
+
+void CLEAR_DOMAIN (Hash& h, string dom ){
+    bool encontrado = false;
+    
+}
+void SIZE(Hash h){
+    cout << h->tamaño;
+}
+
+void CLEAN(Hash& h){
+    for (int i = 0; i < h->capacidad; i++)
+    {
+       if(h->tabla[i]){
+        delete h->tabla[i];
+        h->tabla[i]= NULL;
+       }
+    }
+    h->tamaño=0;
+    delete[] h->tabla;
+    h->tabla = new NodoHash*[h->capacidad]();
+    
+}
+//hay que revisar codigo repetido en CONTAINS, REMOVE, GET ; en vez de struct hacer con class el ejercicicio
 
 

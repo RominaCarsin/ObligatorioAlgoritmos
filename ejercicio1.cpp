@@ -310,6 +310,7 @@ int RANK(NodoAVL* a, int puntaje) {
     }
     return res;
 }
+
 NodoAVL* TOP1(Jugador* j){
     return j->top1;
 }
