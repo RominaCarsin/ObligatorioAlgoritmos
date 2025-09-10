@@ -21,10 +21,12 @@ using namespace std;
  struct Cache
  {
     NodoHash** tabla;
+    int* slotGen;
+    int gen;
     int capacidad;
-    int tamaño;
+    int tamano;
     double fatorDeCargaMax;
-    Cache(int capacidad) : capacidad(capacidad), tamaño(0), fatorDeCargaMax(0.7) {tabla = new NodoHash*[capacidad]();}
+    Cache(int capacidad) : capacidad(capacidad), tamano(0), fatorDeCargaMax(0.7) {tabla = new NodoHash*[capacidad](); slotGen = new int[capacidad]();}
  };
 
  struct Dominio
@@ -37,7 +39,7 @@ typedef Cache* Hash;
 
 
  double FactorDeCarga(Cache* c){
-    return double(c->tamaño) / c->capacidad;
+    return double(c->tamano) / c->capacidad;
  }
    
 bool esPrimo(int num){
@@ -80,19 +82,18 @@ int hash2 (string& clave, int capacidad){
     
 }
 
-// not O1 yet needs to be o1
+bool slotIsEmpty(Cache* h, int idx) {
+    return h->slotGen[idx] != h->gen || h->tabla[idx] == nullptr || h->tabla[idx]->estaBorrado;
+}
+
+void setSlot(Cache* h, int idx, NodoHash* nodo) {
+    h->slotGen[idx] = h->gen; // marca la generacion en la cual se inserto
+    h->tabla[idx] = nodo;
+}
+
 void CLEAR(Hash& h) {
-    // Delete all existing nodes
-    for (int i = 0; i < h->capacidad; ++i) {
-        if (h->tabla[i]) {
-            delete h->tabla[i];
-            h->tabla[i] = nullptr;
-        }
-    }
-    // Reset size and reinitialize the table (clears tombstones too)
-    h->tamaño = 0;
-    delete[] h->tabla;
-    h->tabla = new NodoHash*[h->capacidad]();
+    h->gen++;        // mueve una generacion
+    h->tamano = 0;   // elimina tamano a 0
 }
 
 
@@ -127,10 +128,30 @@ void PUT(Hash& h, string& dom, string& path, string& titulo, int tiempo) {
     string clave = dom + "#" + path;
     int h1 = hash1(clave, h->capacidad);
     int h2 = hash2(clave, h->capacidad);
-    int idx = h1;
-    int firstBorrado = -1;
-    bool encontre = false;
-    //terminarlo
+
+    for (int j = 0; j < h->capacidad; ++j) {
+        int idx = (h1 + j * h2) % h->capacidad;
+
+        if (slotIsEmpty(h,idx)) {
+            // eliminas el viejo
+            delete h->tabla[idx];
+            // insertas el nuevo
+            h->tabla[idx] = new NodoHash(dom, path, titulo, tiempo);
+
+            // indica la generacion para poder borrar en o1 osea eliminar sin eliminar
+            h->slotGen[idx] = h->gen;
+
+            h->tamano++;
+            return;
+        }
+
+        // If it's the same key, update
+        if (h->tabla[idx]->dominio == dom && h->tabla[idx]->path == path) {
+            h->tabla[idx]->titulo = titulo;
+            h->tabla[idx]->tiempo = tiempo;
+            return;
+        }
+    }
 }
 
 string GET (Hash h, string dom, string path){
@@ -173,7 +194,7 @@ void REMOVE (Hash h, string dom, string path){
         if (!h->tabla[idx]->estaBorrado) 
         {
             if (!h->tabla[idx]->estaBorrado && h->tabla[idx]->dominio == dom && h->tabla[idx]->path == path) {
-                h->tamaño--;
+                h->tamano--;
                 h->tabla[idx]->estaBorrado =true;
                 int domHash = 0;
 
@@ -235,7 +256,7 @@ void CLEAR_DOMAIN (Hash& h, string dom ){
     
 }
 void SIZE(Hash h){
-    cout << h->tamaño;
+    cout << h->tamano;
 }
 
 void CLEAN(Hash& h){
@@ -246,7 +267,7 @@ void CLEAN(Hash& h){
         h->tabla[i]= NULL;
        }
     }
-    h->tamaño=0;
+    h->tamano=0;
     delete[] h->tabla;
     h->tabla = new NodoHash*[h->capacidad]();
     
