@@ -241,6 +241,86 @@ void CLEAN(Hash& h){
     h->tabla = new NodoHash*[h->capacidad]();
     
 }
+
+int main()
+{
+    Hash h = new cache();
+    int n;
+    cin >> n;
+    for (int i = 0; i < n; i++) {
+        string op;
+        cin >> op;
+        int opAccion = -1;
+        if (op == "PUT") opAccion = 0;
+        else if (op == "GET") opAccion = 1;
+        else if (op == "REMOVE") opAccion = 2;
+        else if (op == "CONTAINS") opAccion = 3;
+        else if (op == "COUNT_DOMAIN") opAccion = 4;
+        else if (op == "LIST_DOMAIN") opAccion = 5;
+        else if (op == "CLEAR_DOMAIN") opAccion = 6;
+        else if (op == "SIZE") opAccion = 7;
+        else if (op == "CLEAR") opAccion = 8;
+
+
+        switch (opAccion) {
+            case 0: { // PUT <dominio> <path> <titulo> <tiempo>
+                string dominio, path, titulo;
+                int tiempo;
+                cin >> dominio >> path >> titulo >> tiempo;
+                PUT(h, dominio, path, titulo, tiempo);
+                break;
+            }
+            case 1: { // GET <dominio> <path>
+                string dominio, path;
+                cin >> dominio >> path;
+                cout << GET(h, dominio, path) << '\n';
+                break;
+            }
+            case 2: { // REMOVE <dominio> <path>
+                string dominio, path;
+                cin >> dominio >> path;
+                REMOVE(h, dominio, path);
+                break;
+            }
+            case 3: { // CONTAINS <dominio> <path>
+                string dominio, path;
+                cin >> dominio >> path;
+                CONTAINS(h, dominio, path);
+                break;
+            }
+            case 4: { // COUNT_DOMAIN <dominio>
+                string dominio;
+                cin >> dominio;
+                cout << COUNT_DOMAIN(h, dominio) << '\n';
+                break;
+            }
+            case 5: { // LIST_DOMAIN <dominio>
+                string dominio;
+                cin >> dominio;
+                LIST_DOMAIN(h, dominio);
+                break;
+            }
+            case 6: { // CLEAR_DOMAIN <dominio>
+                string dominio;
+                cin >> dominio;
+                CLEAR_DOMAIN(h, dominio);
+                break;
+            }
+            case 7: { // SIZE
+                cout << SIZE(h) << '\n';
+                break;
+            }
+            case 8: { // CLEAR
+                CLEAR(h);
+                break;
+            }
+            default:
+                break;
+        }
+        return 0;
+    }
+    
+}
 //hay que revisar codigo repetido en CONTAINS, REMOVE, GET ; en vez de struct hacer con class el ejercicicio
 
 
