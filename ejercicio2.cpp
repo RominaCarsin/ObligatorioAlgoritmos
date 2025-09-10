@@ -97,13 +97,12 @@ void CLEAR(Hash& h) {
 }
 
 
-
 void refactor(Hash& h) {
     int nuevaCapacidad = primoSupMinimo(h->capacidad * 2);
     NodoHash** nuevaTabla = new NodoHash*[nuevaCapacidad]();
     int* nuevoSlotGen = new int[nuevaCapacidad]();
     for (int i = 0; i < h->capacidad; i++) {
-        if (h->tabla[i] && !h->tabla[i]->estaBorrado) {
+        if (slotIsEmpty(h,i)) {
             string clave = h->tabla[i]->dominio + "#" + h->tabla[i]->path;
             int h1 = hash1(clave, nuevaCapacidad);
             int h2 = hash2(clave, nuevaCapacidad);
@@ -118,6 +117,7 @@ void refactor(Hash& h) {
         }
     }
     delete[] h->tabla;
+    delete[] h->slotGen;
     h->tabla = nuevaTabla;
     h->capacidad = nuevaCapacidad;
     h->slotGen = nuevoSlotGen;
