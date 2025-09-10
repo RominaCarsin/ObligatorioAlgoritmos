@@ -1,5 +1,6 @@
 #include <cassert>
 #include <string>
+#include <string>
 #include <iostream>
 #include <limits>
 
@@ -78,6 +79,22 @@ int hash2 (string& clave, int capacidad){
     return (hash % (capacidad-1))+1; //revisar nuevamente la cuenta 
     
 }
+
+// not O1 yet needs to be o1
+void CLEAR(Hash& h) {
+    // Delete all existing nodes
+    for (int i = 0; i < h->capacidad; ++i) {
+        if (h->tabla[i]) {
+            delete h->tabla[i];
+            h->tabla[i] = nullptr;
+        }
+    }
+    // Reset size and reinitialize the table (clears tombstones too)
+    h->tamaño = 0;
+    delete[] h->tabla;
+    h->tabla = new NodoHash*[h->capacidad]();
+}
+
 
 
 void refactor(Hash& h) {
@@ -284,7 +301,7 @@ int main()
             case 4: { // COUNT_DOMAIN <dominio>
                 string dominio;
                 cin >> dominio;
-                cout << COUNT_DOMAIN(h, dominio) << '\n';
+                COUNT_DOMAIN(h, dominio);
                 break;
             }
             case 5: { // LIST_DOMAIN <dominio>
@@ -300,7 +317,7 @@ int main()
                 break;
             }
             case 7: { // SIZE
-                cout << SIZE(h) << '\n';
+                SIZE(h);
                 break;
             }
             case 8: { // CLEAR
