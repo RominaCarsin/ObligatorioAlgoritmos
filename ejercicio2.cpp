@@ -26,7 +26,7 @@ using namespace std;
     int capacidad;
     int tamano;
     double fatorDeCargaMax;
-    Cache(int capacidad) : capacidad(capacidad), tamano(0), fatorDeCargaMax(0.7) {tabla = new NodoHash*[capacidad](); slotGen = new int[capacidad]();}
+    Cache(int capacidad) : capacidad(capacidad), tamano(0), fatorDeCargaMax(0.7), gen(1) {tabla = new NodoHash*[capacidad](); slotGen = new int[capacidad]();}
  };
 
  struct Dominio
