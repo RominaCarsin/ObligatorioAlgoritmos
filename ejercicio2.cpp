@@ -5,13 +5,6 @@
 
 using namespace std;
 
-int main()
-{
-    // TODO
-    return 0;
-}
-
-
 //template<class T>;
 
  struct NodoHash
@@ -244,7 +237,7 @@ void CLEAN(Hash& h){
 
 int main()
 {
-    Hash h = new cache();
+    Hash h = new Cache(10);
     int n;
     cin >> n;
     for (int i = 0; i < n; i++) {

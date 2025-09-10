@@ -5,8 +5,8 @@ BUILD_FOLDER=./build
 FOLDER=./
 
 
-TEST_FOLDER=./tests/ejercicio1
-CPPFILE=$FOLDER/ejercicio1.cpp
+TEST_FOLDER=./tests/ejercicio2
+CPPFILE=$FOLDER/ejercicio2.cpp
 
 # borrando resultados anteriores
 find $TEST_FOLDER -name "*.own.txt" -type f -delete
