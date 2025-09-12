@@ -27,6 +27,19 @@ class Medio{
 //     nodoDominio(string d): dominio(d), cantidad(0){}
 // };
 
+
+int hash1(pair<string,string> clave) { //chatgpt : como me quedarian los hash 
+    int hash = 0;
+    for (char c : clave.first) hash = hash * 31 + c;
+    return hash;
+}
+
+int hash2(pair<string,string> clave) {
+    int hash = 0;
+    for (char c : clave.second) hash = hash * 73 + c;
+    return hash;
+}
+
 template<class K, class V>
 class nodoHash {//representa una celda hash
 public:
@@ -37,14 +50,14 @@ public:
 
 template<class K, class V>
 class Hash{
-    private: 
+    private:
         nodoHash<K,V>** tabla;
         int maxElementos;
         int cantElementos;
         int largoVec;
         int(*fHash1)(K);
         int(*fHash2)(K);
-        double factorDeCaga;
+        double factorDeCarga;
 
         bool esPrimo(int num){
             if(num<=1 || num%2==0 && num!=2) return false;
@@ -79,7 +92,7 @@ class Hash{
             for (int i = 0; i < largoAnterior; i++)
             {
                 if(tablaVieja[i] != NULL && !tablaVieja[i]->estaBorrado){
-                    put(tablaVieja[i]->dato);
+                    put(tablaVieja[i]->dato.first, tablaVieja[i]->dato.second);
                 }
             }
 
@@ -88,7 +101,7 @@ class Hash{
         }
 
         void maxCantElementos(){
-            maxElementos = int (largoVec * factorDeCaga);
+            maxElementos = int (largoVec * factorDeCarga);
         }
 
         int calcularPos (K dato){
@@ -104,7 +117,7 @@ class Hash{
             return (i < largoVec) ? pos : -1; 
         }
     public:
-        Hash(int (*h1)(K), int (*h2)(K), int tam = 101, double fCarga = 0.7) {
+        Hash(int (*h1)(K), int (*h2)(K), int tam, double fCarga) {
             largoVec = tam;
             factorDeCarga = fCarga;
             fHash1 = h1;
@@ -173,68 +186,85 @@ class Hash{
             }
         }
 };
-int hash1(pair<string,string> clave) { //chatgpt : como me quedarian los hash 
-    int hash = 0;
-    for (char c : clave.first) hash = hash * 31 + c;
-    return hash;
-}
-
-int hash2(pair<string,string> clave) {
-    int hash = 0;
-    for (char c : clave.second) hash = hash * 73 + c;
-    return hash;
-}
-
-
-
 
 
 
 int main()
 {
-    int N;
-    cin >> N;
+    Hash<pair<string,string>, pair<string,int>>* h = new Hash<pair<string,string>, pair<string,int>>(hash1, hash2, 101, 0.7);
+    int n;
+    cin >> n;
+    for (int i = 0; i < n; i++) {
+        string op;
+        cin >> op;
+        int opAccion = -1;
+        if (op == "PUT") opAccion = 0;
+        else if (op == "GET") opAccion = 1;
+        else if (op == "REMOVE") opAccion = 2;
+        else if (op == "CONTAINS") opAccion = 3;
+        else if (op == "COUNT_DOMAIN") opAccion = 4;
+        else if (op == "LIST_DOMAIN") opAccion = 5;
+        else if (op == "CLEAR_DOMAIN") opAccion = 6;
+        else if (op == "SIZE") opAccion = 7;
+        else if (op == "CLEAR") opAccion = 8;
 
-    Hash tablaDominios = new Hash();
 
-    for(i = 0; i < N; i++){
-        string actual;
-        cin >> actual;
-
-        switch(/*la primera palabra (PUT, GET, CLEAR...)*/) {
-            case "PUT":
-                tablaDominios.insertar();
+        switch (opAccion) {
+            case 0: { // PUT <dominio> <path> <titulo> <tiempo>
+                string dominio, path, titulo;
+                int tiempo;
+                cin >> dominio >> path >> titulo >> tiempo;
+                h->put(make_pair(dominio, path), make_pair(titulo, tiempo));
                 break;
-            case "GET":
-                // code block
+            }
+            case 1: { // GET <dominio> <path>
+                string dominio, path;
+                cin >> dominio >> path;
+                //GET(h, dominio, path);
                 break;
+            }
+            case 2: { // REMOVE <dominio> <path>
+                string dominio, path;
+                cin >> dominio >> path;
+                //REMOVE(h, dominio, path);
+                break;
+            }
+            case 3: { // CONTAINS <dominio> <path>
+                string dominio, path;
+                cin >> dominio >> path;
+                //CONTAINS(h, dominio, path);
+                break;
+            }
+            case 4: { // COUNT_DOMAIN <dominio>
+                string dominio;
+                cin >> dominio;
+                //COUNT_DOMAIN(h, dominio);
+                break;
+            }
+            case 5: { // LIST_DOMAIN <dominio>
+                string dominio;
+                cin >> dominio;
+                //LIST_DOMAIN(h, dominio);
+                break;
+            }
+            case 6: { // CLEAR_DOMAIN <dominio>
+                string dominio;
+                cin >> dominio;
+                //CLEAR_DOMAIN(h, dominio);
+                break;
+            }
+            case 7: { // SIZE
+                //SIZE(h);
+                break;
+            }
+            case 8: { // CLEAR
+                //CLEAR(h);
+                break;
+            }
             default:
-                // code block
+                break;
         }
-
-        // Partir string en 5 (si es un put)
-        /*
-        
-        Si es un PUT: Agrego a la tabla la clave
-        (dominio,path) con el valor (titulo,tiempo)
-
-        Si es un size: devuelvo la cantidad de elementos
-        de la tabla
-
-        Si es un count domain: cuento los /xxx
-        (los path de un dominio)
-        
-        Si es un list domain: los muestra (los /xxx)
-
-        Si es un get: devuelvo (titulo,tiempo)
-
-        contains: true si esta en la tabla, false si no
-
-        clear domain: elimina un elemento de la tabla
-
-        clear: elimina todos los elementos de la tabla
-
-        remove: elimina un recuso (/xxx) especifico
-        */
+        return 0;
     }
-}
+    
+};
