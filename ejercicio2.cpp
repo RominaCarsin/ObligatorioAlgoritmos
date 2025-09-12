@@ -1,360 +1,208 @@
 #include <cassert>
 #include <string>
-#include <string>
 #include <iostream>
 #include <limits>
 
 using namespace std;
 
-//template<class T>;
 
- struct NodoHash
- {
+
+
+class Medio{
+    public:
     string dominio;
     string path;
     string titulo;
     int tiempo;
+    Medio(string d, string p, string t, int time ): dominio(d), path(p), titulo(t), tiempo(time){}  
+
+    bool operator==(const Medio& otro) const { //chat gpt- funcion para comparar en medio
+    return dominio == otro.dominio && path == otro.path;
+}
+};
+
+// class nodoDominio{
+//     string dominio;
+//     int cantidad;
+//     nodoDominio(string d): dominio(d), cantidad(0){}
+// };
+
+template<class K, class V>
+class nodoHash {//representa una celda hash
+public:
+    pair<K,V> dato;
     bool estaBorrado;
-    NodoHash(string dominio, string& path, string titulo, int tiempo): dominio(dominio), path(path), titulo(titulo), tiempo(tiempo), estaBorrado(false) {}
- };
- 
- struct Cache
- {
-    NodoHash** tabla;
-    int* slotGen;
-    int gen;
-    int capacidad;
-    int tamano;
-    double fatorDeCargaMax;
-    Cache(int capacidad) : capacidad(capacidad), tamano(0), fatorDeCargaMax(0.7), gen(1) {tabla = new NodoHash*[capacidad](); slotGen = new int[capacidad]();}
- };
+    nodoHash(T dato): dato(dato), estaBorrado(false) {}
+};
 
- struct Dominio
- {
-    NodoHash** tabla;
+template<class K, class V>
+class Hash{
+    private: 
+        nodoHash<K,V>** tabla;
+        int maxElementos;
+        int cantElementos;
+        int largoVec;
+        int(*fHash1)(T);
+        int(*fHash2)(T);
+        double factorDeCaga;
 
- };
-
-typedef Cache* Hash;
-
-
- double FactorDeCarga(Cache* c){
-    return double(c->tamano) / c->capacidad;
- }
-   
-bool esPrimo(int num){
-    if(num<=1 || num%2==0 && num!=2) return false;
-    if(num==2) return true;
-    for (int i = 3; i < num/2; i+=2)
-    {
-        if(num%i==0)
-        {
-            return false;
+        bool esPrimo(int num){
+            if(num<=1 || num%2==0 && num!=2) return false;
+            if(num==2) return true;
+            for (int i = 3; i < num/2; i+=2)
+            {
+                if(num%i==0)
+                {
+                    return false;
+                }
+            }
+            return true;    
         }
-    }
-    return true;    
-}
 
-int primoSupMinimo(int dato){
-    while(!esPrimo(++dato)); 
-    return dato;
-}
+        int primoSupMinimo(int dato){
+            while(!esPrimo(++dato)); 
+            return dato;
+        }
 
-int hash1 (string& clave, int capacidad){
-    int moduloMax1 = 1000000007; //chatgpt- que valor debe tener el modulo para el hash1 y el hash2
+        void resize(){
+            int largoAnterior = largoVec;
+            nodoHash<K,V>** tablaVieja = tabla;
+            //calculo el nuevo tamaño
+            int largoNuevo = primoSupMinimo(largoVec*2);
+            largoVec = largoNuevo;
+            cantElementos = 0;
+            
+            //creo tabla vacia
+            tabla = newnodoHash<K,V>*[largoNuevo];
+            for(int i=0; i<largoNuevo; i++) tabla[i]=NULL;
+            //vuelvo a poner los elementos en la tabla nueva
+            for (int i = 0; i < largoAnterior; i++)
+            {
+                if(tablaVieja[i] != NULL && !tablaVieja[i]->estaBorrado){
+                    put(tablaVieja[i]->dato);
+                }
+            }
+
+            delete[] tablaVieja;
+            
+        }
+
+        void maxCantElementos(){
+            maxElementos = int (largoVec * factorDeCaga);
+        }
+
+        int calcularPos (K dato){
+            int h1 = fHash1(dato) % largoVec;
+            int h2 = (fHash2(dato) % (largoVec - 1)) + 1; // evitar h2 = 0
+            int pos = h1;
+            int i = 0;
+
+            while (tabla[pos] && (!tabla[pos]->estaBorrado && tabla[pos]->dato != dato) && i < largoVec) {
+                pos = (h1 + i * h2) % largoVec;
+                i++;
+            }
+            return (i < largoVec) ? pos : -1; 
+        }
+    public:
+        Hash(int (*h1)(K), int (*h2)(K), int tam = 101, double fCarga = 0.7) {
+            largoVec = tam;
+            factorDeCarga = fCarga;
+            fHash1 = h1;
+            fHash2 = h2;
+            tabla = new nodoHash<K,V>*[largoVec];
+            for (int i = 0; i < largoVec; i++) tabla[i] = NULL;
+            cantElementos = 0;
+            maxCantElementos();
+        }
+        
+        void put (K clave, V valor) {//es el PUT
+            if ((cantElementos + 1) > maxElementos) {
+            resize();
+            maxCantElementos();
+        }
+
+            int h1 = fHash1(clave) % largoVec;
+            int h2 = (fHash2(clave) % (largoVec - 1)) + 1;
+            int pos = h1;
+            int i = 0;
+
+            while (tabla[pos] && !tabla[pos]->estaBorrado && !(tabla[pos]->dato.first == clave) && i < largoVec) {
+                i++;
+                pos = (h1 + i * h2) % largoVec;
+            }
+
+            if (tabla[pos] == NULL || tabla[pos]->estaBorrado) {
+                tabla[pos] = new nodoHash<K,V>(make_pair(clave, valor));
+                cantElementos++;
+            } else {
+                tabla[pos]->dato.second = valor; // actualizar valor
+            }
+        }
+        
+};
+
+int hash1(pair<string,string> clave) {
     int hash = 0;
-    for (char c : clave) 
-    {
-        hash = (hash * 31 + c) % moduloMax1;
-    }
-    return hash % capacidad;
-    
+    for (char c : clave.first) hash = hash * 31 + c;
+    return hash;
 }
 
-int hash2 (string& clave, int capacidad){
-    int moduloMax1 = 1000000009;
+int hash2(pair<string,string> clave) {
     int hash = 0;
-    for (char c : clave) 
-    {
-        hash = (hash * 31 + c) % moduloMax1;
-    }
-    return (hash % (capacidad-1))+1; //revisar nuevamente la cuenta 
-    
-}
-
-bool slotIsEmpty(Cache* h, int idx) {
-    return h->slotGen[idx] != h->gen || h->tabla[idx] == nullptr || h->tabla[idx]->estaBorrado;
-}
-
-void setSlot(Cache* h, int idx, NodoHash* nodo) {
-    h->slotGen[idx] = h->gen; // marca la generacion en la cual se inserto
-    h->tabla[idx] = nodo;
-}
-
-void CLEAR(Hash& h) {
-    h->gen++;        // mueve una generacion
-    h->tamano = 0;   // elimina tamano a 0
+    for (char c : clave.second) hash = hash * 73 + c;
+    return hash;
 }
 
 
-void refactor(Hash& h) {
-    int nuevaCapacidad = primoSupMinimo(h->capacidad * 2);
-    NodoHash** nuevaTabla = new NodoHash*[nuevaCapacidad]();
-    int* nuevoSlotGen = new int[nuevaCapacidad]();
-    for (int i = 0; i < h->capacidad; i++) {
-        if (slotIsEmpty(h,i)) {
-            string clave = h->tabla[i]->dominio + "#" + h->tabla[i]->path;
-            int h1 = hash1(clave, nuevaCapacidad);
-            int h2 = hash2(clave, nuevaCapacidad);
-            int j = 0;
-            int idx = (h1 + j * h2) % nuevaCapacidad;
-            while (nuevaTabla[idx] != nullptr) {
-                j++;
-                idx = (h1 + j * h2) % nuevaCapacidad;
-            }
-            nuevaTabla[idx] = h->tabla[i];
-            nuevoSlotGen[idx] = h->gen;
-        }
-    }
-    delete[] h->tabla;
-    delete[] h->slotGen;
-    h->tabla = nuevaTabla;
-    h->capacidad = nuevaCapacidad;
-    h->slotGen = nuevoSlotGen;
-}
-
-void PUT(Hash& h, string& dom, string& path, string& titulo, int tiempo) {
-    if (FactorDeCarga(h) > h->fatorDeCargaMax) 
-    {
-        refactor(h);
-    }
-    string clave = dom + "#" + path;
-    int h1 = hash1(clave, h->capacidad);
-    int h2 = hash2(clave, h->capacidad);
-
-    for (int j = 0; j < h->capacidad; ++j) {
-        int idx = (h1 + j * h2) % h->capacidad;
-
-        if (slotIsEmpty(h,idx)) {
-            // eliminas el viejo
-            delete h->tabla[idx];
-            // insertas el nuevo
-            h->tabla[idx] = new NodoHash(dom, path, titulo, tiempo);
-
-            // indica la generacion para poder borrar en o1 osea eliminar sin eliminar
-            h->slotGen[idx] = h->gen;
-
-            h->tamano++;
-            return;
-        }
-
-        // If it's the same key, update
-        if (h->tabla[idx]->dominio == dom && h->tabla[idx]->path == path) {
-            h->tabla[idx]->titulo = titulo;
-            h->tabla[idx]->tiempo = tiempo;
-            return;
-        }
-    }
-}
-
-string GET (Hash h, string dom, string path){
-    string clave = dom +"#"+ path;
-    int h1 = hash1(clave, h->capacidad);
-    int h2 = hash2(clave, h->capacidad);
-    int idx = h1;
-    
-    for (int j = 0; j < h->capacidad; ++j) { //O(1) promedio
-        idx = (h1 + j * h2) % h->capacidad;
-        
-        if (h->tabla[idx] == NULL) 
-        {
-            return "recurso_no_encontrado";
-        }
-        
-        if (!h->tabla[idx]->estaBorrado) 
-        {
-            if (h->tabla[idx]->dominio == dom && h->tabla[idx]->path == path) {
-                return h->tabla[idx]->titulo + " " + to_string(h->tabla[idx]->tiempo); //averiguar si se puede usar to string
-            }
-        }
-    }
-    return "recurso_no_encontrado";
-}
-
-void REMOVE (Hash h, string dom, string path){
-    string clave = dom +"#"+ path;
-    int h1 = hash1(clave, h->capacidad);
-    int h2 = hash2(clave, h->capacidad);
-    int idx = h1;
-    for (int j = 0; j < h->capacidad; ++j) { //O(1) promedio
-        idx = (h1 + j * h2) % h->capacidad;
-        
-        if (h->tabla[idx] == NULL) 
-        {
-            return ;
-        }
-        
-        if (!h->tabla[idx]->estaBorrado) 
-        {
-            if (!h->tabla[idx]->estaBorrado && h->tabla[idx]->dominio == dom && h->tabla[idx]->path == path) {
-                h->tamano--;
-                h->tabla[idx]->estaBorrado =true;
-                int domHash = 0;
 
 
 
-
-
-
-                // falta terminarlo
-            }
-        }
-    }
-}
-
-void  CONTAINS (Hash h, string dom, string path){
-    string clave = dom +"#"+ path;
-    int h1 = hash1(clave, h->capacidad);
-    int h2 = hash2(clave, h->capacidad);
-    int idx = h1;
-    for (int j = 0; j < h->capacidad; ++j) { //O(1) promedio
-        idx = (h1 + j * h2) % h->capacidad;
-        
-        if (h->tabla[idx] == NULL) 
-        {
-            cout << "false" << endl;
-            return ;
-        }
-        
-        if (!h->tabla[idx]->estaBorrado) 
-        {
-            if (h->tabla[idx]->dominio == dom && h->tabla[idx]->path == path) {
-                cout << "true" << endl;
-                return;
-            }
-        }
-    }
-    cout << "false" << endl;
-    return;
-
-}
-
-void COUNT_DOMAIN (Hash h, string dom){
-    int cant = 0;
-    for (int i = 0; i < h->capacidad; ++i) {
-        if (h->tabla[i] && !h->tabla[i]->estaBorrado && h->tabla[i]->dominio == dom) {
-            cant++;
-        }
-    }
-    cout << cant << endl;
-}
-
-void LIST_DOMAIN(Hash h, string dom) {
-   
-}
-
-
-void CLEAR_DOMAIN (Hash& h, string dom ){
-    bool encontrado = false;
-    
-}
-void SIZE(Hash h){
-    cout << h->tamano;
-}
-
-void CLEAN(Hash& h){
-    for (int i = 0; i < h->capacidad; i++)
-    {
-       if(h->tabla[i]){
-        delete h->tabla[i];
-        h->tabla[i]= NULL;
-       }
-    }
-    h->tamano=0;
-    delete[] h->tabla;
-    h->tabla = new NodoHash*[h->capacidad]();
-    
-}
 
 int main()
 {
-    Hash h = new Cache(10);
-    int n;
-    cin >> n;
-    for (int i = 0; i < n; i++) {
-        string op;
-        cin >> op;
-        int opAccion = -1;
-        if (op == "PUT") opAccion = 0;
-        else if (op == "GET") opAccion = 1;
-        else if (op == "REMOVE") opAccion = 2;
-        else if (op == "CONTAINS") opAccion = 3;
-        else if (op == "COUNT_DOMAIN") opAccion = 4;
-        else if (op == "LIST_DOMAIN") opAccion = 5;
-        else if (op == "CLEAR_DOMAIN") opAccion = 6;
-        else if (op == "SIZE") opAccion = 7;
-        else if (op == "CLEAR") opAccion = 8;
+    int N;
+    cin >> N;
 
+    Hash tablaDominios = new Hash();
 
-        switch (opAccion) {
-            case 0: { // PUT <dominio> <path> <titulo> <tiempo>
-                string dominio, path, titulo;
-                int tiempo;
-                cin >> dominio >> path >> titulo >> tiempo;
-                PUT(h, dominio, path, titulo, tiempo);
+    for(i = 0; i < N; i++){
+        string actual;
+        cin >> actual;
+
+        switch(/*la primera palabra (PUT, GET, CLEAR...)*/) {
+            case "PUT":
+                tablaDominios.insertar();
                 break;
-            }
-            case 1: { // GET <dominio> <path>
-                string dominio, path;
-                cin >> dominio >> path;
-                cout << GET(h, dominio, path) << '\n';
+            case "GET":
+                // code block
                 break;
-            }
-            case 2: { // REMOVE <dominio> <path>
-                string dominio, path;
-                cin >> dominio >> path;
-                REMOVE(h, dominio, path);
-                break;
-            }
-            case 3: { // CONTAINS <dominio> <path>
-                string dominio, path;
-                cin >> dominio >> path;
-                CONTAINS(h, dominio, path);
-                break;
-            }
-            case 4: { // COUNT_DOMAIN <dominio>
-                string dominio;
-                cin >> dominio;
-                COUNT_DOMAIN(h, dominio);
-                break;
-            }
-            case 5: { // LIST_DOMAIN <dominio>
-                string dominio;
-                cin >> dominio;
-                LIST_DOMAIN(h, dominio);
-                break;
-            }
-            case 6: { // CLEAR_DOMAIN <dominio>
-                string dominio;
-                cin >> dominio;
-                CLEAR_DOMAIN(h, dominio);
-                break;
-            }
-            case 7: { // SIZE
-                SIZE(h);
-                break;
-            }
-            case 8: { // CLEAR
-                CLEAR(h);
-                break;
-            }
             default:
-                break;
+                // code block
         }
-        return 0;
+
+        // Partir string en 5 (si es un put)
+        /*
+        
+        Si es un PUT: Agrego a la tabla la clave
+        (dominio,path) con el valor (titulo,tiempo)
+
+        Si es un size: devuelvo la cantidad de elementos
+        de la tabla
+
+        Si es un count domain: cuento los /xxx
+        (los path de un dominio)
+        
+        Si es un list domain: los muestra (los /xxx)
+
+        Si es un get: devuelvo (titulo,tiempo)
+
+        contains: true si esta en la tabla, false si no
+
+        clear domain: elimina un elemento de la tabla
+
+        clear: elimina todos los elementos de la tabla
+
+        remove: elimina un recuso (/xxx) especifico
+        */
     }
-    
 }
-//hay que revisar codigo repetido en CONTAINS, REMOVE, GET ; en vez de struct hacer con class el ejercicicio
-
-
