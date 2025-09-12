@@ -156,9 +156,23 @@ class Hash{
             cout << "recurso_no_encontrado" << endl;
             }
         }
-        
-};
+        void remove(K clave) {
+            int h1 = fHash1(clave) % largoVec;
+            int h2 = (fHash2(clave) % (largoVec - 1)) + 1;
+            int pos = h1;
+            int i = 0;
 
+            while (tabla[pos] && (!tabla[pos]->estaBorrado && tabla[pos]->dato.first != clave) && i < largoVec) {
+            i++;
+            pos = (h1 + i * h2) % largoVec;
+            }
+
+            if (tabla[pos] && !tabla[pos]->estaBorrado && tabla[pos]->dato.first == clave) {
+            tabla[pos]->estaBorrado = true;
+            cantElementos--;
+            }
+        }
+};
 int hash1(pair<string,string> clave) { //chatgpt : como me quedarian los hash 
     int hash = 0;
     for (char c : clave.first) hash = hash * 31 + c;
