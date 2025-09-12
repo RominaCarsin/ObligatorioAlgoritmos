@@ -32,7 +32,7 @@ class nodoHash {//representa una celda hash
 public:
     pair<K,V> dato;
     bool estaBorrado;
-    nodoHash(T dato): dato(dato), estaBorrado(false) {}
+    nodoHash(pair<K,V> dato): dato(dato), estaBorrado(false) {}
 };
 
 template<class K, class V>
@@ -42,8 +42,8 @@ class Hash{
         int maxElementos;
         int cantElementos;
         int largoVec;
-        int(*fHash1)(T);
-        int(*fHash2)(T);
+        int(*fHash1)(K);
+        int(*fHash2)(K);
         double factorDeCaga;
 
         bool esPrimo(int num){
@@ -73,7 +73,7 @@ class Hash{
             cantElementos = 0;
             
             //creo tabla vacia
-            tabla = newnodoHash<K,V>*[largoNuevo];
+            tabla = new nodoHash<K,V>*[largoNuevo];
             for(int i=0; i<largoNuevo; i++) tabla[i]=NULL;
             //vuelvo a poner los elementos en la tabla nueva
             for (int i = 0; i < largoAnterior; i++)
@@ -138,10 +138,28 @@ class Hash{
                 tabla[pos]->dato.second = valor; // actualizar valor
             }
         }
+
+        void get(K clave) {
+            int h1 = fHash1(clave) % largoVec;
+            int h2 = fHash2(clave) % largoVec;
+            int pos = h1;
+            int i = 0;
+
+            while (tabla[pos] && (!tabla[pos]->estaBorrado && tabla[pos]->dato.first != clave) && i < largoVec) {
+            i++;
+            pos = (h1 + i * h2) % largoVec;
+            }
+
+            if (tabla[pos] && !tabla[pos]->estaBorrado && tabla[pos]->dato.first == clave) {
+            cout << tabla[pos]->dato.second.first << " " << tabla[pos]->dato.second.second << endl;
+            } else {
+            cout << "recurso_no_encontrado" << endl;
+            }
+        }
         
 };
 
-int hash1(pair<string,string> clave) {
+int hash1(pair<string,string> clave) { //chatgpt : como me quedarian los hash 
     int hash = 0;
     for (char c : clave.first) hash = hash * 31 + c;
     return hash;
