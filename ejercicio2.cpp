@@ -77,6 +77,7 @@ class Hash{
             return dato;
         }
 
+        // rehashing
         void resize(){
             int largoAnterior = largoVec;
             nodoHash<K,V>** tablaVieja = tabla;
@@ -127,12 +128,13 @@ class Hash{
             cantElementos = 0;
             maxCantElementos();
         }
-        
+
+        //pre:       
         void put (K clave, V valor) {//es el PUT
             if ((cantElementos + 1) > maxElementos) {
             resize();
             maxCantElementos();
-        }
+            }
 
             int h1 = fHash1(clave) % largoVec;
             int h2 = (fHash2(clave) % (largoVec - 1)) + 1;
@@ -154,7 +156,7 @@ class Hash{
 
         void get(K clave) {
             int h1 = fHash1(clave) % largoVec;
-            int h2 = fHash2(clave) % largoVec;
+            int h2 = (fHash2(clave) % (largoVec - 1)) + 1;
             int pos = h1;
             int i = 0;
 
@@ -192,8 +194,7 @@ class Hash{
 int main()
 {
     Hash<pair<string,string>, pair<string,int>>* h = new Hash<pair<string,string>, pair<string,int>>(hash1, hash2, 101, 0.7);
-    int n;
-    cin >> n;
+    int n;    cin >> n;
     for (int i = 0; i < n; i++) {
         string op;
         cin >> op;
@@ -220,13 +221,13 @@ int main()
             case 1: { // GET <dominio> <path>
                 string dominio, path;
                 cin >> dominio >> path;
-                //GET(h, dominio, path);
+                h->get(make_pair(dominio,path));
                 break;
             }
             case 2: { // REMOVE <dominio> <path>
                 string dominio, path;
                 cin >> dominio >> path;
-                //REMOVE(h, dominio, path);
+                h->remove(make_pair(dominio,path));
                 break;
             }
             case 3: { // CONTAINS <dominio> <path>
@@ -264,7 +265,6 @@ int main()
             default:
                 break;
         }
-        return 0;
     }
-    
-};
+    return 0;
+}
