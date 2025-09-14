@@ -1,12 +1,10 @@
-#include <bits/stdc++.h> // este include parece tener error pero me anda cuando us3e el include string y otros no me anduvo
-#include <cassert>
-#include <string>
 #include <iostream>
-#include <limits>
+#include <string>
 #include <cstring>
 
-
 using namespace std;
+typedef unsigned long long U64;
+
 
 const int MAXLEN = 51; // maximo largo de domain, path, title (50 caracteres 1 terminator)
 
@@ -64,14 +62,18 @@ class Cache{
         
         // para la eleccion del tamano de la tabla
         bool esPrimo(int num){
-            if(num<2) return false;
-            if(num%2 ==0) return num ==2;
-            int limite = sqrt(num) +1;
-            for(int i = 3;i<=limite;i+=2){ // siempre impar
-                if(num%i==0) return false;
+            if(num<=1 || num%2==0 && num!=2) return false;
+            if(num==2) return true;
+            for (int i = 3; i < num/2; i+=2)
+            {
+                if(num%i==0)
+                {
+                    return false;
+                }
             }
-            return true;
+            return true;    
         }
+
 
         int primoSupMinimo(int valor){
             if (valor <= 2) return 2;
