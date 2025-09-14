@@ -23,15 +23,15 @@ struct HashNode{
     int time;
     bool deleted;
 
-    // constructor nulo pero si no lo termino usando borrar
+    //crea nodo vacio por defecto
     HashNode(): domainNode(NULL), nextDomain(NULL), prevDomain(NULL), time(0), deleted(false) {
     path[0] = '\0';
     title[0] = '\0';
     }
 
     HashNode(DomainNode* dom, const char* p, const char* t, int tim): domainNode(dom), nextDomain(NULL), prevDomain(NULL), time(tim), deleted(false) {
-    strncpy(path, p, MAXLEN); // se usa esto porque me saltaba error en el path(p)
-    path[MAXLEN-1] = '\0'; // para que se sepa su ultima posicion como un string
+    strncpy(path, p, MAXLEN); // copia el string path
+    path[MAXLEN-1] = '\0'; //asegura que sea un string
     strncpy(title, t, MAXLEN);
     title[MAXLEN-1] = '\0';
     }
@@ -43,9 +43,8 @@ struct DomainNode{
     HashNode* head; // mas reciente
     HashNode* tail; // mas antiguo
     int count;
-    bool deleted;// tombstone, empty null, ocupied false, deleted true
+    bool deleted;   // tombstone, empty null, ocupied false, deleted true
 
-    // al igual que arriba si no termina siendo necesario el empty constructor borrar
     DomainNode(): domain(""), head(NULL), tail(NULL), count(0), deleted(false) {}
     DomainNode(const string& dom): domain(dom), head(NULL), tail(NULL), count(0), deleted(false) {}
 
@@ -54,7 +53,7 @@ struct DomainNode{
 
 class Cache{
     private:
-        HashNode** hashTable; // tabla hash con todos los   s datos
+        HashNode** hashTable; // tabla hash con todos los datos
         int tableSize;
         DomainNode** domainTable;
         int domainTableSize;
@@ -164,7 +163,7 @@ class Cache{
                     domainTable[idx] = domNode;
                 }
             }
-            // 2. Buscar el recurso en la tabla principal (para actualizar si ya existe)
+            // Buscar el recurso en la tabla principal (para actualizar si ya existe)
             uint64_t h2 = hashKey(dom, path.c_str());
             int index = h2 % tableSize;                           // índice inicial en tabla de recursos
             int step2 = 1 + ((h2 >> 32) % (tableSize - 1));       // paso (double hashing)
