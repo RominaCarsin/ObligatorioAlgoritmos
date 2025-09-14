@@ -2,12 +2,5 @@
 #include <string>
 #include <iostream>
 #include <limits>
-#include "tads/HashOPenCache.cpp"
 
 using namespace std;
-
-int main()
-{
-    // TODO
-    return 0;
-}
