@@ -16,7 +16,7 @@ while read filesize filename; do
     Ts="$(date +%s)"
     Tmm="$(date +%s%3N)"
     if [ -f "$CPPFILE" ]; then
-        $BUILD_FOLDER/ejercicio1.out < $filename > ${filename/in/own}
+        $BUILD_FOLDER/ejercicio2.out < $filename > ${filename/in/own}
     else 
         java Main < $filename > ${filename/in/own}
     fi
