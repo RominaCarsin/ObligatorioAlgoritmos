@@ -5,8 +5,8 @@ BUILD_FOLDER=./build
 FOLDER=./
 
 
-TEST_FOLDER=./tests/ejercicio2
-CPPFILE=$FOLDER/ejercicio2.cpp
+TEST_FOLDER=./tests/ejercicio3
+CPPFILE=$FOLDER/ejercicio3.cpp
 
 # borrando resultados anteriores
 find $TEST_FOLDER -name "*.own.txt" -type f -delete
@@ -16,7 +16,7 @@ while read filesize filename; do
     Ts="$(date +%s)"
     Tmm="$(date +%s%3N)"
     if [ -f "$CPPFILE" ]; then
-        $BUILD_FOLDER/ejercicio2.out < $filename > ${filename/in/own}
+        $BUILD_FOLDER/ejercicio3.out < $filename > ${filename/in/own}
     else 
         java Main < $filename > ${filename/in/own}
     fi
