@@ -37,9 +37,10 @@ private:
     int totalCount;
 
     int hashStr( const string& s)  {
-        int h;
+        int h=0;//inth; esto apunta basura en memoria cuando se inicializa "randomiza" el hashstring 
         for (size_t i = 0; i < s.size(); ++i)
             h = ((h << 5) + h) + (char)s[i]; // h * 33 + c es para evitar overflow 
+            if (h < 0) h = -h;
         return h;
     }
 
