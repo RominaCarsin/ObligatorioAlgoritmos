@@ -118,7 +118,7 @@ public:
         totalCount = 0;
     }
 
-    ~Cache() { //chatgpt
+    ~Cache() { //chatgpt // grantiza que no haya fugas de memoria - clase del 16 de setiembre
         clear();
         // liberar tablas
         delete [] table;
