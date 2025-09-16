@@ -36,18 +36,18 @@ private:
     int domSize;
     int totalCount;
 
-    int hashStr( string& s)  {
+    int hashStr( const string& s)  {
         int h;
         for (size_t i = 0; i < s.size(); ++i)
             h = ((h << 5) + h) + (char)s[i]; // h * 33 + c es para evitar overflow 
         return h;
     }
 
-    int hashKey( string& d,  string& path)  {
+    int hashKey( const string& d,  const string& path)  {
         return hashStr(d + "/" + path) % tableSize;
     }
 
-    int hashDomain( string& d)  {
+    int hashDomain(const string& d)  {
         return hashStr(d) % domSize;
     }
 
@@ -126,7 +126,7 @@ public:
     }
 
    
-    void put( string& d,  string& path,  string& title, int tim) {
+    void put( string& d,  string& path,  string& title, int time) {
         DomainNode* domNode = getOrCreateDomain(d);
         int idx = hashKey(d, path);
 
@@ -134,7 +134,7 @@ public:
         while (cur) {
             if (cur->domain == d && cur->path == path) {
                 cur->title = title;
-                cur->time = tim;
+                cur->time = time;
                 if (domNode->recursos != cur) {
                     unlinkFromDomain(domNode, cur);            
                     cur->nextDomain = domNode->recursos;
@@ -145,8 +145,8 @@ public:
             cur = cur->nextHash;
         }
 
-        // no existe se crea un nuevo nodo se coloca al frente 
-        MedioNode* nuevo = new MedioNode(d, path, title, tim);
+        // Si no existe se crea un nuevo nodo se coloca al frente 
+        MedioNode* nuevo = new MedioNode(d, path, title, time);
         nuevo->nextHash = table[idx];
         table[idx] = nuevo;
         nuevo->nextDomain = domNode->recursos;

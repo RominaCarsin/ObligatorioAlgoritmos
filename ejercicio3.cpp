@@ -19,7 +19,7 @@ int main()
     string op, domain, path, title;
     int time;
 
-    for(int i=0; i<N, i++){
+    for(int i=0; i<N; i++){
         if (op == "PUT") {
             cin >> domain >> path >> title >> time;
             cache.put(domain, path, title, time);
