@@ -85,5 +85,5 @@ int main() {
     // }
     // delete[] listas;
 
-    // return 0;
+    return 0;
 }
