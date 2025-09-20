@@ -283,6 +283,8 @@ class Cache{
             }
         }
 
+        //pre:
+        //post: imprime true/false dependiendo si contiene el elemento o no
         void contains(const string& dom, const string& path) {
             // Buscar dominio
             // funcion double hash?? revisar el resto, coutndomain tiene el mismo promedio si ahi funciona igual segureamente tengo que hacerlo

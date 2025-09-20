@@ -127,6 +127,8 @@ public:
     }
 
    
+    //pre: d, path, titulo =<50 caracteres, 1<= time <= 10^9
+    //pos: si no existe (d,path) se crea si existia se mueve el nodo y agrega
     void put( string& d,  string& path,  string& title, int time) {
         DomainNode* domNode = getOrCreateDomain(d);
         int idx = hashKey(d, path);
@@ -157,6 +159,8 @@ public:
         domNode->deleted = false; // si antes estaba borrado, se vuelve a marcar como activo
     }
 
+    //pre:
+    //post: imprime titulo y tiempo o recirso no encontrado en caso de no existir
     void get( string& d,  string& path) {
         DomainNode* domNode = findDomain(d);
         if (!domNode) {
@@ -175,6 +179,8 @@ public:
         cout << "recurso_no_encontrado\n";
     }
 
+    //pre:
+    //post: imprime true o false dependiendo si contiene o no
     void contains( string& d,  string& path) {
         DomainNode* domNode = findDomain(d);
         if (!domNode) { cout << "false\n"; return; }
@@ -190,6 +196,8 @@ public:
         cout << "false\n";
     }
 
+    //pre:
+    //post: elimina el medionode, domnode.count -1, disminuye el total count en 1. si domnode es =0 lo marca eliminado
     void remove( string& d,  string& path) {
         DomainNode* domNode = findDomain(d);
         if (!domNode) return;
@@ -217,12 +225,16 @@ public:
         if (domNode->count == 0) domNode->deleted = true;
     }
 
+    //pre:
+    //post: si el dom no existe o deleted es true  imprime 0 si existe imprime count
     void countDomain( string& d) {
         DomainNode* domNode = findDomain(d);
         if (!domNode || domNode->deleted) cout << "0\n";
         else cout << domNode->count << "\n";
     }
-
+    
+    //pre:
+    //post: si no existe o count=0 imprime linea vacia si existe imprime el path    s
     void listDomain( string& d) {
         DomainNode* domNode = findDomain(d);
         if (!domNode || domNode->deleted || domNode->count == 0) {
@@ -241,10 +253,14 @@ public:
     }
 
 
+    //pre:
+    //post: imprime el totalcount del cache
     void size() {
         cout << totalCount << "\n";
     }
 
+    //pre:
+    //post: dominio existe y no borrad: se eliminan todos los recursos de la lista ddomain, y se liberala memoria, totalcount se ve afectada por cada uno
     void clearDomain( string& d) {
         DomainNode* domNode = findDomain(d);
         if (!domNode || domNode->deleted) return;
@@ -264,6 +280,8 @@ public:
         domNode->deleted = true;
     }
 
+    //pre:
+    //post:se eliminan y liberan todosd los nodos de la tabla, punteros quedan null
     void clear() {
         // borra todos los nodos de recursos
         for (int i = 0; i < tableSize; ++i) {
