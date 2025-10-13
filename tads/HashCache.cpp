@@ -315,7 +315,7 @@ public:
         }
 
         if (domainNode == NULL || domainNode->count == 0) {
-            cout << "dominio_no_encontrado" << endl;
+            cout << endl;// lo de recurso no encontrado no va aca no es necesario para esto
             return;
         }
 
