@@ -84,20 +84,23 @@ public:
     }
 
     void put(const string& dom, const string& path, const string& tit, int tim) {
-        int h = h1(dom); // falta % tablesize? 
-        int idx = h % domainTableSize;
-        int step = h2(dom) % domainTableSize;
-        if (step == 0) step = 1;
+        int idx  = (int)((unsigned long long)h1(dom) % (unsigned long long)domainTableSize);
+        int step = 1 + (int)((unsigned long long)h2(dom) % (unsigned long long)(domainTableSize - 1));
 
         DomainNode* domainNode = nullptr;
         int firstDeleted = -1;
 
         for (int i = 0; i < domainTableSize; ++i) {
-            int pos = (idx + i * step) % domainTableSize;
+            int pos = (int)(((long long)idx + (long long)i * step) % (long long)domainTableSize);
             if (domainTable[pos] == NULL) {
-                if (firstDeleted != -1) pos = firstDeleted;
-                domainTable[pos] = new DomainNode(dom);
-                domainNode = domainTable[pos];
+                int usePos = pos;
+                if (firstDeleted != -1)
+                {
+                    delete domainTable[firstDeleted];
+                    usePos = firstDeleted;
+                }
+                domainTable[usePos] = new DomainNode(dom);
+                domainNode = domainTable[usePos];
                 break;
             } else if (domainTable[pos]->deleted) {
                 if (firstDeleted == -1) firstDeleted = pos;
@@ -107,25 +110,32 @@ public:
             }
         }
         if (!domainNode) {
-            domainTable[firstDeleted] = new DomainNode(dom);
-            domainNode = domainTable[firstDeleted];
+            if (firstDeleted != -1) {
+                delete domainTable[firstDeleted];
+                domainTable[firstDeleted] = new DomainNode(dom);
+                domainNode = domainTable[firstDeleted];
+            } else {
+                domainTable[idx] = new DomainNode(dom);
+                domainNode = domainTable[idx];
+            }
         }
 
         string key = dom + "|" + path;
-        int hkey = h1(key);
-        int stepkey = h2(key) % tableSize;
-        if (stepkey == 0) stepkey = 1;
+        int hashIdx = (int)((unsigned long long)h1(key) % (unsigned long long)tableSize);
+        int stepkey = 1 + (int)((unsigned long long)h2(key) % (unsigned long long)(tableSize - 1));
 
-        int hashIdx = hkey % tableSize;
         int firstDel = -1;
         HashNode* node = nullptr;
 
         for (int i = 0; i < tableSize; ++i) {
-            int pos = (hashIdx + i * stepkey) % tableSize;
+            int pos = (int)(((long long)hashIdx + (long long)i * stepkey) % (long long)tableSize);
             if (hashTable[pos] == NULL) {
-                if (firstDel != -1) pos = firstDel;
-                hashTable[pos] = new HashNode(domainNode, path, tit, tim);
-                node = hashTable[pos];
+                int insertPos = (firstDel != -1 ? firstDel : pos);
+                if (firstDel != -1) {
+                    delete hashTable[firstDel];
+                }
+                hashTable[insertPos] = new HashNode(domainNode, path, tit, tim);
+                node = hashTable[insertPos];
                 totalCount++;
                 node->nextDomain = domainNode->head;
                 if (domainNode->head) domainNode->head->prevDomain = node;
@@ -141,11 +151,22 @@ public:
                 hashTable[pos]->title = tit;
                 hashTable[pos]->time = tim;
                 node = hashTable[pos];
+                HashNode* found = node;
+                if (found->prevDomain) found->prevDomain->nextDomain = found->nextDomain;
+                if (found->nextDomain) found->nextDomain->prevDomain = found->prevDomain;
+                if (domainNode->head == found) domainNode->head = found->nextDomain;
+                if (domainNode->tail == found) domainNode->tail = found->prevDomain;
+                found->prevDomain = NULL;
+                found->nextDomain = domainNode->head;
+                if (domainNode->head) domainNode->head->prevDomain = found;
+                domainNode->head = found;
+                if (!domainNode->tail) domainNode->tail = found;
                 break;
             }
         }
 
         if (!node && firstDel != -1) {
+            delete hashTable[firstDel];
             hashTable[firstDel] = new HashNode(domainNode, path, tit, tim);
             node = hashTable[firstDel];
             totalCount++;
@@ -155,17 +176,17 @@ public:
             if (!domainNode->tail) domainNode->tail = node;
             domainNode->count++;
         }
+
     }
 
     void get(const string& dom, const string& path) {
-        int h = h1(dom);
-        int idx = h % domainTableSize;
-        int step = h2(dom) % domainTableSize;
-        if (step == 0) step = 1;
+        int idx  = (int)((unsigned long long)h1(dom) % (unsigned long long)domainTableSize);
+        int step = 1 + (int)((unsigned long long)h2(dom) % (unsigned long long)(domainTableSize - 1));
+
 
         DomainNode* domainNode = NULL;
         for (int i = 0; i < domainTableSize; ++i) {
-            int pos = (idx + i * step) % domainTableSize;
+            int pos = (int)(((long long)idx + (long long)i * step) % (long long)domainTableSize);
             if (domainTable[pos] == NULL) break; 
             if (!domainTable[pos]->deleted && domainTable[pos]->domain == dom) {
                 domainNode = domainTable[pos];
@@ -180,32 +201,33 @@ public:
 
         // Busco el path dentro de la tabla de recursos (h2)
         string key = dom + "|" + path;
-        int hkey = h1(key);
-        int stepkey = h2(key);
-        if (stepkey == 0) stepkey = 1;
-        int hashIdx = hkey % tableSize;
+        int hashIdx = (int)((unsigned long long)h1(key) % (unsigned long long)tableSize);
+        int stepkey = 1 + (int)((unsigned long long)h2(key) % (unsigned long long)(tableSize - 1));
+
 
         for (int i = 0; i < tableSize; ++i) {
-            int pos = (hashIdx + i * stepkey) % tableSize;
-            if (hashTable[pos] == NULL) break; // No está
-            if (!hashTable[pos]->deleted && hashTable[pos]->domainNode == domainNode && hashTable[pos]->path == path) { // Recurso encontrado
+            int pos = (int)(((long long)hashIdx + (long long)i * stepkey) % (long long)tableSize);
+            if (hashTable[pos] == NULL) break;
+            if (!hashTable[pos]->deleted &&
+                hashTable[pos]->domainNode == domainNode &&
+                hashTable[pos]->path == path) {
                 cout << hashTable[pos]->title << " " << hashTable[pos]->time << endl;
                 return;
             }
         }
+
         cout << "recurso_no_encontrado" << endl;
     }
 
     
     void remove(const string& dom, const string& path) {
-        int h = h1(dom);
-        int idx = h % domainTableSize;
-        int step = h2(dom) % domainTableSize;
-        if (step == 0) step = 1;
+        int idx  = (int)((unsigned long long)h1(dom) % (unsigned long long)domainTableSize);
+        int step = 1 + (int)((unsigned long long)h2(dom) % (unsigned long long)(domainTableSize - 1));
+
 
         DomainNode* domainNode = nullptr;
         for (int i = 0; i < domainTableSize; ++i) {
-            int pos = (idx + i * step) % domainTableSize;
+            int pos = (int)(((long long)idx + (long long)i * step) % (long long)domainTableSize);
             if (domainTable[pos] == NULL) break;
             if (!domainTable[pos]->deleted && domainTable[pos]->domain == dom) {
                 domainNode = domainTable[pos];
@@ -236,14 +258,12 @@ public:
     }
 
     void contains(const string& dom, const string& path) {
-        int h = h1(dom);
-        int idx = h % domainTableSize;
-        int step = h2(dom) % domainTableSize;
-        if (step == 0) step = 1;
+        int idx  = (int)((unsigned long long)h1(dom) % (unsigned long long)domainTableSize);
+        int step = 1 + (int)((unsigned long long)h2(dom) % (unsigned long long)(domainTableSize - 1));
 
         DomainNode* domainNode = NULL;
         for (int i = 0; i < domainTableSize; ++i) {
-            int pos = (idx + i * step) % domainTableSize;
+            int pos = (int)(((long long)idx + (long long)i * step) % (long long)domainTableSize);
             if (domainTable[pos] == NULL) break; 
             if (!domainTable[pos]->deleted && domainTable[pos]->domain == dom) {
                 domainNode = domainTable[pos];
@@ -258,13 +278,12 @@ public:
 
         // Busco el path dentro de la tabla de recursos (h2)
         string key = dom + "|" + path;
-        int hkey = h1(key);
-        int stepkey = h2(key);
-        if (stepkey == 0) stepkey = 1;
-        int hashIdx = hkey % tableSize;
+        int hashIdx = (int)((unsigned long long)h1(key) % (unsigned long long)tableSize);
+        int stepkey = 1 + (int)((unsigned long long)h2(key) % (unsigned long long)(tableSize - 1));
+
 
         for (int i = 0; i < tableSize; ++i) {
-            int pos = (hashIdx + i * stepkey) % tableSize;
+            int pos = (int)(((long long)hashIdx + (long long)i * stepkey) % (long long)tableSize);
             if (hashTable[pos] == NULL) break; // No está
             if (!hashTable[pos]->deleted && hashTable[pos]->domainNode == domainNode && hashTable[pos]->path == path) { // Recurso encontrado
                 cout << "true" << endl;
@@ -275,14 +294,13 @@ public:
     }
 
     int countDomain(const string& dom) {
-        int h = h1(dom);
-        int idx = h % domainTableSize;
-        int step = h2(dom) % domainTableSize;
-        if (step == 0) step = 1;
+        int idx  = (int)((unsigned long long)h1(dom) % (unsigned long long)domainTableSize);
+        int step = 1 + (int)((unsigned long long)h2(dom) % (unsigned long long)(domainTableSize - 1));
+
 
         DomainNode* domainNode = NULL;
         for (int i = 0; i < domainTableSize; ++i) {
-            int pos = (idx + i * step) % domainTableSize;
+            int pos = (int)(((long long)idx + (long long)i * step) % (long long)domainTableSize);
             if (domainTable[pos] == NULL) break; 
             if (!domainTable[pos]->deleted && domainTable[pos]->domain == dom) {
                 domainNode = domainTable[pos];
@@ -299,14 +317,12 @@ public:
     }
 
     void listDomain(const string& dom) {
-        int h = h1(dom);
-        int idx = h % domainTableSize;
-        int step = h2(dom) % domainTableSize;
-        if (step == 0) step = 1;
+        int idx  = (int)((unsigned long long)h1(dom) % (unsigned long long)domainTableSize);
+        int step = 1 + (int)((unsigned long long)h2(dom) % (unsigned long long)(domainTableSize - 1));
 
         DomainNode* domainNode = NULL;
         for (int i = 0; i < domainTableSize; ++i) {
-            int pos = (idx + i * step) % domainTableSize;
+            int pos = (int)(((long long)idx + (long long)i * step) % (long long)domainTableSize);
             if (domainTable[pos] == NULL) break; 
             if (!domainTable[pos]->deleted && domainTable[pos]->domain == dom) {
                 domainNode = domainTable[pos];
@@ -315,7 +331,7 @@ public:
         }
 
         if (domainNode == NULL || domainNode->count == 0) {
-            cout << endl;// lo de recurso no encontrado no va aca no es necesario para esto
+            cout << endl;
             return;
         }
 
@@ -333,14 +349,13 @@ public:
     }
 
     void clearDomain(const string& dom) {
-        int h = h1(dom);
-        int idx = h % domainTableSize;
-        int step = h2(dom) % domainTableSize;
-        if (step == 0) step = 1;
+        int idx  = (int)((unsigned long long)h1(dom) % (unsigned long long)domainTableSize);
+        int step = 1 + (int)((unsigned long long)h2(dom) % (unsigned long long)(domainTableSize - 1));
+
 
         DomainNode* domainNode = nullptr;
         for (int i = 0; i < domainTableSize; ++i) {
-            int pos = (idx + i * step) % domainTableSize;
+            int pos = (int)(((long long)idx + (long long)i * step) % (long long)domainTableSize);
             if (domainTable[pos] == NULL) break;
             if (!domainTable[pos]->deleted && domainTable[pos]->domain == dom) {
                 domainNode = domainTable[pos];
