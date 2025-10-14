@@ -84,7 +84,7 @@ public:
     }
 
     void put(const string& dom, const string& path, const string& tit, int tim) {
-        int h = h1(dom);
+        int h = h1(dom); // falta % tablesize? 
         int idx = h % domainTableSize;
         int step = h2(dom) % domainTableSize;
         if (step == 0) step = 1;
@@ -322,7 +322,7 @@ public:
         HashNode* node = domainNode->head;
         while (node) {
             if (!node->deleted) {
-                cout << node->path << " " << node->title << " " << node->time << endl;
+                cout << node->path  endl;
             }
             node = node->nextDomain;
         }
