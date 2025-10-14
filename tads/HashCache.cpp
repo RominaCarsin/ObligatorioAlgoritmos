@@ -320,12 +320,16 @@ public:
         }
 
         HashNode* node = domainNode->head;
+        bool first = true;
         while (node) {
             if (!node->deleted) {
-                cout << node->path  endl;
+                if (!first) cout << ' ';
+                cout << node->path;
+                first = false;
             }
             node = node->nextDomain;
         }
+        cout << endl;
     }
 
     void clearDomain(const string& dom) {
