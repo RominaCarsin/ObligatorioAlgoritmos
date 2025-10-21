@@ -8,7 +8,7 @@ using namespace std;
 struct Arista{
     int u;
     int v;
-    double peso;
+    int peso;
 };
 
 void intercambiarAristas(Arista& a1, Arista& a2) {
@@ -18,7 +18,7 @@ void intercambiarAristas(Arista& a1, Arista& a2) {
 }
 
 int particion(Arista* arr, int inicio, int fin){
-    double pivote = arr[fin].peso;
+    int pivote = arr[fin].peso;
     int i = inicio - 1;
     for (int j = inicio; j < fin; j++) {
         if (arr[j].peso <= pivote) {
@@ -92,7 +92,7 @@ class Grafo{
             aristas = new Arista[E];
             indice = 0;
         }
-        void agregarArista(int u, int v, double peso){
+        void agregarArista(int u, int v, int peso){
             aristas[indice].u = u;
             aristas[indice].v = v;
             aristas[indice].peso = peso;
