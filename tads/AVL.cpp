@@ -295,7 +295,7 @@ void FIND (NodoAVL *&a, int id){
     }
 }
 
-int RANK(NodoAVL* a, int puntaje) {
+void RANK(NodoAVL* a, int puntaje) {
     int res = 0;
     while (a) {
         if (a->puntaje >= puntaje) {
@@ -306,7 +306,7 @@ int RANK(NodoAVL* a, int puntaje) {
             a = a->der;
         }
     }
-    return res;
+     cout << res << endl;
 }
 
 void TOP1(Jugador* j){

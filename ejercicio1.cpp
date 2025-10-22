@@ -47,7 +47,7 @@ int main()
             case 4: {
                 int puntaje;
                 cin >> puntaje;
-                cout << RANK(j->pointsTree, puntaje) << endl;
+                RANK(j->pointsTree, puntaje);
                 break;
             }
             default:
