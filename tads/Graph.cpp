@@ -52,8 +52,6 @@ class DisjointSet {
                 padre[i] = i;
                 rango[i] = 0;
             }
-            delete[] padre;
-            delete[] rango;
         }
         int buscar(int x) {
             if (padre[x] != x) {
