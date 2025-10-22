@@ -7,8 +7,8 @@ FOLDER=./
 
 mkdir -p "$BUILD_FOLDER" 
 
-TEST_FOLDER=./tests/ejercicio5
-CPPFILE=$FOLDER/ejercicio5.cpp
+TEST_FOLDER=./tests/ejercicio1
+CPPFILE=$FOLDER/ejercicio1.cpp
 
 
 echo "Compilando..."
