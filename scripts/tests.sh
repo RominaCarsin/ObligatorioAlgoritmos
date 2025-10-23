@@ -23,8 +23,8 @@ while read filesize filename; do
     Ts="$(($(date +%s)-Ts))"
     Tmm="$(($(date +%s%3N)-Tmm))"
     echo "$filename : $Ts segundos | $Tmm milisegundos"
-    diff -Z -B ${filename/in/out} ${filename/in/own} > /dev/null
-
+    diff -Z -B ${filename/in/out} ${filename/in/own}
+    
     if [ $? -eq 0 ]; then
         echo -e "\e[32m${filename} - OK\e[0m"
         continue
