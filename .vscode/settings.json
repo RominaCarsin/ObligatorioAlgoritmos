@@ -3,5 +3,6 @@
     "terminal.integrated.fontSize": 16,
     "files.associations": {
         "xstring": "cpp",
+        "map": "cpp"
     }
 }
