@@ -65,7 +65,10 @@ Nodo* insertarAVL(Nodo* raiz, string clave, int valor) {
 }
 
 int buscarAVL(Nodo* raiz, string clave) {
-    if (!raiz) return -1; // no debería pasar
+    if (!raiz) {
+        cout << "Error: clave no encontrada en el AVL." << endl;
+        return -1;
+     } // no debería pasar
     if (raiz->clave == clave) return raiz->valor;
     if (clave < raiz->clave){
         return buscarAVL(raiz->izquierda, clave);
@@ -84,7 +87,7 @@ long long mergeAndCount(int arr[], int temporal[], int izquierda, int medio, int
             temporal[k++] = arr[i++];
         else {
             temporal[k++] = arr[j++];
-            contador += (medio - i + 1);
+            contador += ((long long)medio - (long long)i + 1);
         }
     }
 
@@ -114,10 +117,11 @@ int main() {
     int n;
     cin >> n;
 
+int s;
     string* oficial = new string[n];
     string* ayudante = new string[n];
 
-    for (int i = 0; i < n; i++)
+    for (int i = 0; i < n; i++) //aca no esta entrando
         cin >> oficial[i];
 
     Nodo* raiz = nullptr;
