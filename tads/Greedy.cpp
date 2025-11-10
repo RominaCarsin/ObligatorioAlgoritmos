@@ -105,5 +105,5 @@ public:
         if (estaVacio()) return;
         vector[1] = vector[cantElementos--];
         hundir(1);
-    }
+    }
 };

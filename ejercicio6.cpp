@@ -21,8 +21,8 @@ int main()
     int f;
     cin >> f;
 
-    Par pozos[n + 1];
-    Par mejoras[m + 1];
+    Par pozos[n + 2];
+    Par mejoras[m + 2];
 
     for (int i = 1; i <= n; i++)
     {
@@ -58,44 +58,54 @@ int main()
 
     maxHeap heap(m);
 
+    // avanza posPozo si ya quedó atrás
+    auto syncPozos = [&]() {
+        while (posPozo <= n && pozos[posPozo].segundo < posActual) posPozo++;
+    };
+
     while (posActual < f)
     {
-        while (posMejora <= m && mejoras[posMejora].primero <= posActual + potenciaActual)
+        syncPozos();
+        int reach = posActual + potenciaActual;
+        int lim = reach;
+
+        if (posPozo <= n && pozos[posPozo].primero <= reach) {
+            if (reach <= pozos[posPozo].segundo) {
+                // bloqueado por el pozo actual
+                lim = pozos[posPozo].primero - 1;
+            } else {
+                // puedo pasar este pozo; revisar el siguiente
+                if (posPozo + 1 <= n && pozos[posPozo + 1].primero <= reach) {
+                    lim = pozos[posPozo + 1].primero - 1;
+                } else {
+                    lim = reach;
+                }
+            }
+        }
+
+        // Agrego mejoras alcanzables al heap
+        while (posMejora <= m && mejoras[posMejora].primero <= lim)
         {
             heap.insertar(mejoras[posMejora].segundo);
             posMejora++;
         }
 
-        // Hay un pozo, puedo saltarlo?
-        if (posPozo <= n && pozos[posPozo].primero <= posActual + potenciaActual)
-        {
-            // Sí, sigo de largo
-            if (pozos[posPozo].segundo < posActual + potenciaActual)
-            {
-                posActual = max(posActual + potenciaActual, pozos[posPozo].segundo + 1);
-                posPozo++;
+        // si no puedo moverme, pido mejora y re-evalúo
+        if (lim <= posActual) {
+            if (heap.estaVacio()) {
+                cout << "Imposible" << '\n';
+                return 0;
             }
-            // No, necesito una mejora
-            else
-            {
-                if (heap.estaVacio())
-                {
-                    cout << "Imposible" << endl;
-                    return 0;
-                }
-
-                // saco del minHeap y uso la mejora
-                potenciaActual += heap.extraerMax();
-                heap.eliminar();
-                cantMejoras++;
-            }
+            potenciaActual += heap.extraerMax();
+            heap.eliminar();
+            cantMejoras++;
+            continue;
         }
-        // No hay pozo, avanzo
-        else
-        {
-            posActual += potenciaActual;
-        }
+        posActual = lim;
+        syncPozos();
+        if(posActual >= f) break;
     }
+    
     cout << cantMejoras << endl;
-    return 0;
+    return 0;
 }
