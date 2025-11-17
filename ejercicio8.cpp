@@ -6,28 +6,78 @@
 using namespace std;
 
 const int MAXN = 1000;
+const int HASH_SIZE = 1000007; // Prime number for hash table
+
+// left and right index (for all combinatios), k amount boxes so to dont get mixes between same index at different times, like when delete a block   
+struct State {
+    int l, r, k;
+    int value;
+    State* next;
+    
+    State(int _l, int _r, int _k, int _v) : l(_l), r(_r), k(_k), value(_v), next(nullptr) {}
+};
+
+// Hash table for memoization
+State* hashTable[HASH_SIZE];
 int cris[MAXN];
 
-int maxPoints(int leftIndex, int rightIndex, int k /*amount of elements in subarray*/, int n /*total elements*/) {
-    // ya recorri todo
-    if(l>r) return 0;
-    int val = getValue(l,r,k);
+int getHash(int l, int r, int k) {
+    long long h = ((long long)l * 1000000LL + (long long)r * 1000LL + k) % HASH_SIZE;
+    if (h < 0) h += HASH_SIZE;
+    return h;
+}
+
+int getValue(int l, int r, int k) {
+    int h = getHash(l, r, k);
+    State* curr = hashTable[h];
+    while (curr != nullptr) {
+        if (curr->l == l && curr->r == r && curr->k == k) {
+            return curr->value;
+        }
+        curr = curr->next;
+    }
+    return -1;
+}
+
+void setValue(int l, int r, int k, int value) {
+    int h = getHash(l, r, k);
+    State* newState = new State(l, r, k, value);
+    newState->next = hashTable[h];
+    hashTable[h] = newState;
+}
+
+int maxPoints(int l, int r, int k, int n) {
+    if (l > r) return 0;
     
-    //recorro el array 1 menos de la der y hago qeue el valor sea k^2 + el siguiente de puntos
-    int res = maxPoints(l,r-1,0,n)+((k+1)*(k+1));
-    //  cuando salgo del recursivo estoy en lo mas abajo
-    //calculo valor por elementos del mismo color
-    for(int i=0;i<r;i++){
-        if(cris[i]==cris[r]){
-            int cand = maxPoints(l,i,k+1,n)+ maxPoints(i+1,r-1,0,n);
-            if(cand>res) res=cand;
+    int cached = getValue(l, r, k);
+    if (cached != -1) return cached;
+    
+    // Opción 1: eliminar el bloque final (cris[r] + k extras)
+    int res = maxPoints(l, r - 1, 0, n) + (k + 1) * (k + 1);
+    
+    // Opción 2: juntar cris[r] con algún cris[i] del mismo color
+    for (int i = l; i < r; i++) {
+        if (cris[i] == cris[r]) {
+            int cand = maxPoints(l, i, k + 1, n) + maxPoints(i + 1, r - 1, 0, n);
+            if (cand > res) res = cand;
         }
     }
-    // el nuevo mejor valor para esa posicion
-    setValue(l,r,k,res);
+    
+    setValue(l, r, k, res);
     return res;
 }
 
+void cleanupHash() {
+    for (int i = 0; i < HASH_SIZE; i++) {
+        State* curr = hashTable[i];
+        while (curr != nullptr) {
+            State* temp = curr;
+            curr = curr->next;
+            delete temp;
+        }
+        hashTable[i] = nullptr;
+    }
+}
 
 int main() {
     int n;
@@ -36,12 +86,14 @@ int main() {
         cin >> cris[i];
     }
     
-    // tad base case fill por ejemplo en array es array = -1
-    setUp();
-
-    int ans = maxPoints(0, n - 1, 0, n);// recorro del mas grande 
+    // Initialize hash table
+    for (int i = 0; i < HASH_SIZE; i++) {
+        hashTable[i] = nullptr;
+    }
+    
+    int ans = maxPoints(0, n - 1, 0, n);
     cout << ans << endl;
     
-    cleanup();
+    cleanupHash();
     return 0;
 }
