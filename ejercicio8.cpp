@@ -8,7 +8,7 @@ using namespace std;
 const int MAXN = 1000;
 const int HASH_SIZE = 1000007; // Prime number for hash table
 
-// left and right index (for all combinatios), k amount boxes so to dont get mixes between same index at different times, like when delete a block   
+// left and right index (for all combinatios), k amount of values of the same cristal, like when delete a block   
 struct State {
     int l, r, k;
     int value;
