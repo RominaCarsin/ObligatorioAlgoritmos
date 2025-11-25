@@ -21,8 +21,10 @@ int main()
     int f;
     cin >> f;
 
-    Par pozos[n + 2];
-    Par mejoras[m + 2];
+    /* Par pozos[n + 2]; //revisar esto 
+    Par mejoras[m + 2]; */
+    Par* pozos = new Par[n + 2];
+    Par* mejoras = new Par[m + 2];
 
     for (int i = 1; i <= n; i++)
     {
@@ -107,5 +109,7 @@ int main()
     }
     
     cout << cantMejoras << endl;
+    delete[] pozos;
+    delete[] mejoras;
     return 0;
 }
